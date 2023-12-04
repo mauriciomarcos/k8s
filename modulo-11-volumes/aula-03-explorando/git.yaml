@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: static-website
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: static-website
+  template:
+    metadata:
+      name: static-website
+      labels:
+        app: static-website
+    spec:
+      containers:
+      - image: nginx:alpine
+        name: web-server
+        ports:
+        - containerPort: 80
+          protocol: TCP
+        volumeMounts:
+        - name: html
+          mountPath: /usr/share/nginx/html
+          readOnly: true
+      initContainers:
+      - image: alpine/git
+        name: git
+        command:
+        - git
+        - clone
+        - https://github.com/brunobritodev/kubernetes-site.git
+        - /kubernetes-site
+        volumeMounts:
+        - name: html
+          mountPath: /kubernetes-site
+      volumes:
+      - name: html
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: static-website
+spec:
+  selector:
+      app: static-website
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: static-website-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: static-website.devstore.info
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: static-website
+                port:
+                  number: 80

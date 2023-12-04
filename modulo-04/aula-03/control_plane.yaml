@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: communicate-apiserver
+  labels:
+    app.kubernetes.io/name: communicate-apiserver
+spec:
+  containers:
+  - name: kube-comm
+    image: curlimages/curl
+    command: ["sh"]
+    args:
+      - -c
+      - >-
+          APISERVER=https://kubernetes.default.svc &&
+          SERVICEACCOUNT=/var/run/secrets/kubernetes.io/serviceaccount &&
+          NAMESPACE=$(cat ${SERVICEACCOUNT}/namespace) &&
+          TOKEN=$(cat ${SERVICEACCOUNT}/token) &&
+          CACERT=${SERVICEACCOUNT}/ca.crt &&
+          echo "Chamando API do k8s - $NAMESPACE" &&
+          curl --cacert ${CACERT} --header "Authorization: Bearer ${TOKEN}" -X GET ${APISERVER}/api &&
+          sleep 10000
+            

@@ -1,0 +1,19 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: job-demo
+spec:
+  completions: 1
+  backoffLimit: 3
+  parallelism: 1
+  # activeDeadlineSeconds: 70
+  # suspend: false
+  ttlSecondsAfterFinished: 100
+  template:
+    metadata:
+      name: job-demo
+    spec:
+      containers:
+      - name: job-demo
+        image: desenvolvedorio/dominando-kubernetes:pod-lifecycle-failed
+      restartPolicy: OnFailure
